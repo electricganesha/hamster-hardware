@@ -39,18 +39,23 @@ class HamsterSession:
         valid_hums = [h for h in self.humidities if h is not None and not (isinstance(h, float) and math.isnan(h))]
         avg_temp = (sum(valid_temps) / len(valid_temps)) if valid_temps else None
         avg_hum = (sum(valid_hums) / len(valid_hums)) if valid_hums else None
+        # Convert timestamps to ISO 8601 strings for DateTime compatibility
+        start_time_iso = time.strftime('%Y-%m-%dT%H:%M:%S', time.localtime(self.start)) if self.start else None
+        end_time_iso = time.strftime('%Y-%m-%dT%H:%M:%S', time.localtime(session_end)) if session_end else None
         session_data = {
-            "start_timestamp": self.start,
-            "end_timestamp": session_end,
+            "startTime": start_time_iso,
+            "endTime": end_time_iso,
             "rotations": self.rotations,
-            "avg_temperature": avg_temp,
-            "avg_humidity": avg_hum
+            "temperature": avg_temp,
+            "humidity": avg_hum,
+            "image": None  # Optional, set to a string if you have an image
         }
-        print("Session ended at", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(session_end)))
+        print("Session ended at", end_time_iso)
         print("Session data:", session_data)
         try:
             response = requests.post(API_URL, json=session_data)
             print("Posted to API, status:", response.status_code)
+            print("API response:", response.text)
         except Exception as e:
             print("Failed to post to API:", e)
         self.active = False
