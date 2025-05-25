@@ -49,10 +49,8 @@ class HamsterSession:
         print("Session ended at", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(session_end)))
         print("Session data:", session_data)
         try:
-            print("Posting to API with payload:", session_data)
             response = requests.post(API_URL, json=session_data)
             print("Posted to API, status:", response.status_code)
-            print("API response:", response.text)
         except Exception as e:
             print("Failed to post to API:", e)
         self.active = False
