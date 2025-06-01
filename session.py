@@ -1,7 +1,13 @@
-import requests
+import os
 import time
+import requests
+from dotenv import load_dotenv
 
-API_URL = "https://hamster-red.vercel.app/api/hamster-session"
+# Load environment variables from .env file
+load_dotenv()
+
+API_URL = os.getenv("API_URL")
+API_SECRET_TOKEN = os.getenv("API_SECRET_TOKEN")
 
 class HamsterSession:
     def __init__(self):
@@ -23,7 +29,6 @@ class HamsterSession:
         print("Session started at", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(now)))
 
     def log_rotation(self, now, temp, hum):
-        # Use last known values if current readings are None
         if temp is None:
             temp = self.last_temp
         else:
@@ -34,7 +39,6 @@ class HamsterSession:
         else:
             self.last_hum = hum
 
-        # Ensure values are always floats, fallback to -1.0 if still None
         temp = float(temp) if temp is not None else -1.0
         hum = float(hum) if hum is not None else -1.0
 
@@ -52,10 +56,8 @@ class HamsterSession:
         session_end = self.last_activity
 
         if self.rotations < 5:
-            print(f"Session discarded (only {self.rotations} rotations)")
-            self.active = False
-            self.start = None
-            self.last_activity = None
+            print(f"Session discarded — only {self.rotations} rotations")
+            self._reset()
             return
 
         session_data = {
@@ -67,11 +69,18 @@ class HamsterSession:
         print("Session data:", session_data)
 
         try:
-            response = requests.post(API_URL, json=session_data)
+            headers = {
+                "Authorization": f"Bearer {API_SECRET_TOKEN}",
+                "Content-Type": "application/json"
+            }
+            response = requests.post(API_URL, json=session_data, headers=headers)
             print("Posted to API, status:", response.status_code)
         except Exception as e:
             print("Failed to post to API:", e)
 
+        self._reset()
+
+    def _reset(self):
         self.active = False
         self.start = None
         self.last_activity = None
