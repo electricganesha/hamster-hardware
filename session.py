@@ -51,6 +51,13 @@ class HamsterSession:
     def end_session(self):
         session_end = self.last_activity
 
+        if self.rotations < 5:
+            print(f"Session discarded (only {self.rotations} rotations)")
+            self.active = False
+            self.start = None
+            self.last_activity = None
+            return
+
         session_data = {
             "images": [],
             "rotationLog": self.rotation_log
